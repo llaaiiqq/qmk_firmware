@@ -487,7 +487,7 @@ void rgblight_task(void) {
       rgblight_effect_breathing(rgblight_config.mode - 2);
     } else if (rgblight_config.mode >= 6 && rgblight_config.mode <= 8) {
       // mode = 6 to 8, rainbow mood mod
-      rgblight_effect_rainbow_mood(rgblight_config.mode - 6);
+      rgblight_effect_rainbow_decay(rgblight_config.mode - 6);
     } else if (rgblight_config.mode >= 9 && rgblight_config.mode <= 14) {
       // mode = 9 to 14, rainbow swirl mode
       rgblight_effect_rainbow_swirl(rgblight_config.mode - 9);
@@ -500,6 +500,7 @@ void rgblight_task(void) {
     } else if (rgblight_config.mode == 24) {
       // mode = 24, christmas mode
       rgblight_effect_christmas();
+    } else if (rgblight_config.mode == 25) {
     }
   }
 }
@@ -653,6 +654,23 @@ void rgblight_effect_christmas(void) {
     sethsv(hue, rgblight_config.sat, rgblight_config.val, (LED_TYPE *)&led[i]);
   }
   rgblight_set();
+}
+
+void rgblight_effect_rainbow_decay(uint8_t interval) {
+  static uint16_t last_timer = 0;
+  static uint16_t current_hue = 0;
+
+  if (timer_elapsed(last_timer) < pgm_read_byte(&RGBLED_BREATHING_INTERVALS[interval])) {
+    return;
+  }
+  last_timer = timer_read();
+
+  current_hue = (current_hue + 1) % 360;
+  if (rgblight_config.val > 0) {
+      rgblight_config.val--;
+  }
+
+  rgblight_sethsv_noeeprom(current_hue, rgblight_config.sat, rgblight_config.val);
 }
 
 #endif
